@@ -1,4 +1,4 @@
-# python-http-signature-server
+# http-signature-server
 
 Python implementation of the server side of the [IETF draft "Signing HTTP Messages"](https://tools.ietf.org/html/draft-ietf-httpbis-message-signatures-00)
 
