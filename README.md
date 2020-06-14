@@ -17,8 +17,8 @@ A deliberate subset of the signature algorithm is implemented:
 from http_signature_server import verify_ed25519_sha512
 
 def get_credentials(key_id):
-    # Return {'id': 'some-id', 'public_key': 'the_public_key'} matching key_id,
-    # or None if credentials can't be found
+    # If the key_id is found, return a callable that takes the signature and key_id and returns a bool
+    # If the key_id isn't known, return None
 
-error, (credentials, verified_headers) = verify_ed25519_sha512(get_credentials, method, url, headers, body_sha512)
+error, (key_id, verified_headers) = verify_ed25519_sha512(get_credentials, method, url, headers, body_sha512)
 ```
