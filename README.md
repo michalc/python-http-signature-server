@@ -16,9 +16,9 @@ A deliberate subset of the signature algorithm is implemented:
 ```python
 from http_signature_server import verify_ed25519_sha512
 
-def get_credentials(key_id):
+def get_verifier(key_id):
     # If the key_id is found, return a callable that takes the signature and key_id and returns a bool
     # If the key_id isn't known, return None
 
-error, (key_id, verified_headers) = verify_ed25519_sha512(get_credentials, method, url, headers, body_sha512)
+error, (key_id, verified_headers) = verify_ed25519_sha512(get_verifier, method, url, headers, body_sha512)
 ```
