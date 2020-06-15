@@ -4,9 +4,19 @@ HTTP server agnostic Python implementation of the server side of the [IETF draft
 
 A deliberate subset of the signature algorithm is implemented:
 
-- requests must be signed using an Ed25519 private key [currently seen as a good algorithm];
-- a SHA-512 digest of the body is required [to authenticate more of the request];
-- the algorithm parameter is not checked [it should not be used to choose the algorithm].
+- the `(request-target)` pseudo-header is required and verified;
+- the `(created)` pseudo-header is required and verified, with a configurable maximum skew;
+- the `headers` parameter is required and verified;
+- the `expires` parameter is ignored if sent;
+- the `algorithm` parameter is ignored if sent.
+
+There are a few places where the implementation is technically, and deliberately, non-conforming.
+
+- The `(created)` pseudo-header: if this is in the future from the server's point of view, even 1 second, according to the spec verification should fail.
+
+- The `expires` parameter: if this is sent and in the past from the server's point of view, according to the spec verification should fail.
+
+- The `algorithm` parameter: if it's sent but does not match what the server expects, according to the spec verification should fail.
 
 > This is a work in progress. This README serves as a rough design spec.
 
@@ -20,5 +30,5 @@ def get_verifier(key_id):
     # If the key_id is found, return a callable that takes the signature and key_id and returns a bool
     # If the key_id isn't known, return None
 
-error, (key_id, verified_headers) = verify_ed25519_sha512(get_verifier, method, url, headers, body_sha512)
+error, (key_id, verified_headers) = verify_ed25519_sha512(get_verifier, max_skew, method, url, headers, body_sha512)
 ```
