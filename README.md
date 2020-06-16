@@ -5,7 +5,7 @@ HTTP server agnostic Python implementation of the server side of the [IETF draft
 A deliberate subset of the signature algorithm is implemented:
 
 - the `(request-target)` pseudo-header is required and verified;
-- the `(created)` pseudo-header is required and verified, with a configurable maximum skew;
+- the `created` parameter is required and verified, with a configurable maximum skew;
 - the `headers` parameter is required and verified;
 - the `expires` parameter is ignored if sent;
 - the `algorithm` parameter is ignored if sent.
