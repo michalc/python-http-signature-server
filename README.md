@@ -2,7 +2,7 @@
 
 HTTP server agnostic Python implementation of the server side of the [IETF draft "Signing HTTP Messages"](https://tools.ietf.org/html/draft-ietf-httpbis-message-signatures-00), with [cryptography](https://github.com/pyca/cryptography) the only dependency other than the Python standard library.
 
-A deliberate subset of the signature algorithm is implemented:
+A deliberate subset of the signature algorithm is implemented/enforced:
 
 - the `(request-target)` pseudo-header is required and verified;
 - the `created` parameter is required and verified, with a configurable maximum skew;
@@ -24,11 +24,11 @@ There are a few places where the implementation is technically, and deliberately
 ## Usage
 
 ```python
-from http_signature_server import verify_ed25519_sha512
+from http_signature_server import verify
 
 def get_verifier(key_id):
     # If the key_id is found, return a callable that takes the signature and key_id and returns a bool
     # If the key_id isn't known, return None
 
-error, (key_id, verified_headers) = verify_ed25519_sha512(get_verifier, max_skew, method, url, headers, body_sha512)
+error, (key_id, verified_headers) = verify(get_verifier, max_skew, method, path, headers)
 ```
