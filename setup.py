@@ -18,7 +18,7 @@ setuptools.setup(
     py_modules=[
         'http_signature_server',
     ],
-    python_requires='>=3.5.0',
+    python_requires='>=3.6.3',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
