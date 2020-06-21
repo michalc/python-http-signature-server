@@ -14,7 +14,7 @@ def lookup_verifier(key_id):
     # If the key_id is found, return a callable that takes the signature and key_id and returns a bool
     # If the key_id isn't known, return None
 
-error, (key_id, verified_headers) = verify(lookup_verifier, max_skew, method, path, headers)
+error, (key_id, verified_headers) = verify_headers(lookup_verifier, max_skew, method, path, headers)
 ```
 
 
