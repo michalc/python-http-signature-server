@@ -2,11 +2,11 @@ from base64 import b64decode
 from collections import defaultdict
 from datetime import datetime
 import re
-from typing import Callable, DefaultDict, List, Tuple, Union
+from typing import Callable, DefaultDict, List, Tuple, Union, Optional
 
 
 def verify_headers(
-        lookup_verifier: Callable[[str], Callable[[bytes, bytes], bool]],
+        lookup_verifier: Callable[[str], Optional[Callable[[bytes, bytes], bool]]],
         max_skew: int, method: str, path: str,
         headers: Tuple[Tuple[str, str], ...]
     ) \
@@ -103,7 +103,7 @@ def verify_headers(
     # Ensure verifier corresponding to keyId
 
     matching_verifier = lookup_verifier(key_id_param)
-    if not matching_verifier:
+    if matching_verifier is None:
         return 'Unknown keyId', (None, None)
 
     ##################
