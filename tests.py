@@ -124,3 +124,36 @@ class TestIntegration(unittest.TestCase):
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
+
+    def test_missing_parameters(self):
+        def lookup_verifier(_):
+            return lambda _, __: True
+
+        now = str(int(datetime.now().timestamp()))
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="cor", created={now}, headers="(created) (request-target)"',
+        ),))
+        self.assertEqual(error, 'Missing signature parameter')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="cor", created={now}, signature="Y29y"',
+        ),))
+        self.assertEqual(error, 'Missing headers parameter')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="cor", signature="Y29y", headers="(created) (request-target)"',
+        ),))
+        self.assertEqual(error, 'Missing created parameter')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'created={now}, signature="Y29y", headers="(created) (request-target)"',
+        ),))
+        self.assertEqual(error, 'Missing keyId parameter')
+        self.assertEqual(creds, (None, None))

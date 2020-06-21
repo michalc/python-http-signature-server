@@ -41,6 +41,11 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
         return f'Missing headers parameter', (None, None)
 
     try:
+        signature_param = params['signature']
+    except KeyError:
+        return f'Missing signature parameter', (None, None)
+
+    try:
         created_param = params['created']
     except KeyError:
         return f'Missing created parameter', (None, None)
@@ -102,7 +107,7 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
             headers_lists[key].append(value)
         return tuple((key, ', '.join(headers_lists[key])) for key in claimed_signed_headers)
 
-    verified = matching_verifier(b64decode(params['signature']), '\n'.join(
+    verified = matching_verifier(b64decode(signature_param), '\n'.join(
         f'{key}: {value}' for key, value in signature_input()
     ).encode('ascii'))
 
