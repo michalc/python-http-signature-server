@@ -66,3 +66,61 @@ class TestIntegration(unittest.TestCase):
         error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ())
         self.assertEqual(error, 'Missing signature header')
         self.assertEqual(creds, (None, None))
+
+    def test_invalid_signature(self):
+        def lookup_verifier(_):
+            return lambda _, __: True
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key=',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key="',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key="d", ',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key=4, ',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key=4, ',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key=4, k',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key=4, k=',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'keyTwo="v1",  keyTwo="v2"',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
