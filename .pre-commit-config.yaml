@@ -42,4 +42,4 @@ repos:
         - --max-args=10
         - --max-line-length=99
         - --max-locals=25
-        - --max-returns=10
+        - --max-returns=20
