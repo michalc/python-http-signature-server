@@ -25,7 +25,7 @@ A deliberate subset of the signature algorithm is implemented/enforced:
 - the `(request-target)` pseudo-header is required and verified;
 - the `created` parameter is required, and the corresponding `(created)` pseudo-header must be signed;
 - the `headers` parameter is required;
-- the `expires` parameter is ignored if sent, other than the corresponding `(expires)` pseudo-heder being verified if signed;
+- the `expires` parameter, if sent, must _not_ correspond to a signed `(expires)` pseudo-header;
 - the `algorithm` parameter is ignored if sent.
 
 There are a few places where the implementation is technically, and deliberately, non-conforming.
