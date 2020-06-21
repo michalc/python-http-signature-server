@@ -159,6 +159,14 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(error, 'Missing keyId parameter')
         self.assertEqual(creds, (None, None))
 
+    def test_repeated_parameters(self):
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'any="something", any="other"',
+        ),))
+        self.assertEqual(error, 'Repeated parameter')
+        self.assertEqual(creds, (None, None))
+
     def test_invalid_created(self):
         error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
