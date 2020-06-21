@@ -2,9 +2,17 @@ from base64 import b64decode
 from collections import defaultdict
 from datetime import datetime
 import re
+from typing import Callable, DefaultDict, List, Tuple, Union
 
 
-def verify_headers(lookup_verifier, max_skew, method, path, headers):
+def verify_headers(
+        lookup_verifier: Callable[[str], Callable[[bytes, bytes], bool]],
+        max_skew: int, method: str, path: str,
+        headers: Tuple[Tuple[str, str], ...]
+    ) \
+        -> Union[
+            Tuple[str, Tuple[None, None]],
+            Tuple[None, Tuple[str, Tuple[Tuple[str, str], ...]]]]:
     now = int(datetime.now().timestamp())
 
     #########################
@@ -101,8 +109,8 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
     ##################
     # Verify signature
 
-    def signature_input():
-        headers_lists = defaultdict(list)
+    def signature_input() -> Tuple[Tuple[str, str], ...]:
+        headers_lists: DefaultDict[str, List[str]] = defaultdict(list)
         for key, value in available_headers:
             headers_lists[key].append(value)
         return tuple((key, ', '.join(headers_lists[key])) for key in claimed_signed_headers)
@@ -117,7 +125,7 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
     ##############################################
     # Generate key value pairs of verified headers
 
-    def verified_headers():
+    def verified_headers() -> Tuple[Tuple[str, str], ...]:
         key_values = []
         for key, value in headers:
             if key.lower() in claimed_signed_headers_set:
