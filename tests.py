@@ -226,6 +226,21 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(error, 'Missing signed ver2 header value')
         self.assertEqual(creds, (None, None))
 
+    def test_subset_of_headers_signed(self):
+        now = str(int(datetime.now().timestamp()))
+
+        sig_val = \
+            f'keyId="cor", created={now}, signature="Y29y", headers="(created) (request-target) ' \
+            f'h1 h3"'
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', (
+            ('signature', sig_val),
+            ('H1', 'value1'),
+            ('h2', 'value2'),
+            ('h3', 'value3'),
+        ))
+        self.assertEqual(error, None)
+        self.assertEqual(creds, ('cor', (('H1', 'value1'), ('h3', 'value3'))))
+
 
 def always_true_lookup_verifier(_):
     return lambda _, __: True
