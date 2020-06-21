@@ -157,3 +157,14 @@ class TestIntegration(unittest.TestCase):
         ),))
         self.assertEqual(error, 'Missing keyId parameter')
         self.assertEqual(creds, (None, None))
+
+    def test_invalid_created(self):
+        def lookup_verifier(_):
+            return lambda _, __: True
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="cor", created="X", signature="Y29y", headers="(created) (request-target)"',
+        ),))
+        self.assertEqual(error, 'Invalid created paramater')
+        self.assertEqual(creds, (None, None))
