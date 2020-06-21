@@ -207,6 +207,25 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(error, 'Invalid created paramater')
         self.assertEqual(creds, (None, None))
 
+    def test_missing_signed_headers(self):
+        now = str(int(datetime.now().timestamp()))
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="cor", created={now}, signature="Y29y", headers="(created) (request-target) '
+            f'ver1 ver2"',
+        ),))
+        self.assertEqual(error, 'Missing signed ver1 header value')
+        self.assertEqual(creds, (None, None))
+        sig_val = \
+            f'keyId="cor", created={now}, signature="Y29y", headers="(created) (request-target) ' \
+            f'ver1 ver2"'
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', (
+            ('signature', sig_val),
+            ('ver1', 'value'),
+        ))
+        self.assertEqual(error, 'Missing signed ver2 header value')
+        self.assertEqual(creds, (None, None))
+
 
 def always_true_lookup_verifier(_):
     return lambda _, __: True
