@@ -39,12 +39,16 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(error, None)
         self.assertEqual(creds, ('cor', ()))
 
-    def test_skew(self):
-        def lookup_verifier(_):
-            return lambda _, __: True
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="cor", created={now}, signature="Y29y", headers="(created) (request-target)"',
+        ),))
+        self.assertEqual(error, None)
+        self.assertEqual(creds, ('cor', ()))
 
+    def test_skew(self):
         now = str(int(datetime.now().timestamp()) - 11)
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
             f'keyId="inc", created={now}, signature="Y29y", headers="(created) (request-target)"',
         ),))
@@ -52,7 +56,7 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(creds, (None, None))
 
         now = str(int(datetime.now().timestamp()) + 15)
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
             f'keyId="inc", created={now}, signature="Y29y", headers="(created) (request-target)"',
         ),))
@@ -60,104 +64,95 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(creds, (None, None))
 
     def test_missing_signature(self):
-        def lookup_verifier(_):
-            return lambda _, __: True
-
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ())
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ())
         self.assertEqual(error, 'Missing signature header')
         self.assertEqual(creds, (None, None))
 
     def test_invalid_signature(self):
-        def lookup_verifier(_):
-            return lambda _, __: True
-
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key=',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key="',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key="d", ',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key=d',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key=4, ',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key=4, ',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key=4, k',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key=4, k=',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'keyTwo="v1",  keyTwo="v2"',
         ),))
         self.assertEqual(error, 'Invalid signature header')
         self.assertEqual(creds, (None, None))
 
     def test_missing_parameters(self):
-        def lookup_verifier(_):
-            return lambda _, __: True
-
         now = str(int(datetime.now().timestamp()))
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
             f'keyId="cor", created={now}, headers="(created) (request-target)"',
         ),))
         self.assertEqual(error, 'Missing signature parameter')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
             f'keyId="cor", created={now}, signature="Y29y"',
         ),))
         self.assertEqual(error, 'Missing headers parameter')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
             f'keyId="cor", signature="Y29y", headers="(created) (request-target)"',
         ),))
         self.assertEqual(error, 'Missing created parameter')
         self.assertEqual(creds, (None, None))
 
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
             f'created={now}, signature="Y29y", headers="(created) (request-target)"',
         ),))
@@ -165,12 +160,13 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(creds, (None, None))
 
     def test_invalid_created(self):
-        def lookup_verifier(_):
-            return lambda _, __: True
-
-        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
             f'keyId="cor", created="X", signature="Y29y", headers="(created) (request-target)"',
         ),))
         self.assertEqual(error, 'Invalid created paramater')
         self.assertEqual(creds, (None, None))
+
+
+def always_true_lookup_verifier(_):
+    return lambda _, __: True
