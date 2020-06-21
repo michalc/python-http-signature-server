@@ -58,3 +58,11 @@ class TestIntegration(unittest.TestCase):
         ),))
         self.assertEqual(error, 'Created skew too large')
         self.assertEqual(creds, (None, None))
+
+    def test_missing_signature(self):
+        def lookup_verifier(_):
+            return lambda _, __: True
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ())
+        self.assertEqual(error, 'Missing signature header')
+        self.assertEqual(creds, (None, None))
