@@ -96,6 +96,12 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(creds, (None, None))
 
         error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
+            'signature', 'key=d',
+        ),))
+        self.assertEqual(error, 'Invalid signature header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(lookup_verifier, 10, 'GET', '/any', ((
             'signature', 'key=4, ',
         ),))
         self.assertEqual(error, 'Invalid signature header')
