@@ -36,4 +36,4 @@ There are a few places where the implementation is technically, and deliberately
 
 - The `algorithm` parameter: if it's sent but does not match what the server expects, according to the spec verification should fail.
 
-It is assumed that the `(created)` and `(request-target)` pseudo-headers were prepended to the list of real HTTP headers before canonicalisation at the signer. This fact only makes a difference in the edge case of real HTTP headers called `(created)` or `(request-target)`.
+It is assumed that the `(created)` and `(request-target)` pseudo-headers were prepended to the list of real HTTP headers before canonicalisation at the client. This fact only makes a difference in the edge case of real HTTP headers called `(created)` or `(request-target)`.
