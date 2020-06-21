@@ -2,8 +2,6 @@
 
 HTTP server agnostic Python implementation of the server side of the [IETF draft "Signing HTTP Messages"](https://tools.ietf.org/html/draft-ietf-httpbis-message-signatures-00), with no dependencies other than the Python standard library, although [cryptography](https://github.com/pyca/cryptography) would typically be used in client code to verify signatures using a public key.
 
-> This is a work in progress. This README serves as a rough design spec.
-
 
 ## Usage
 
