@@ -1,4 +1,4 @@
-# http-signature-server
+# http-signature-server [![CircleCI](https://circleci.com/gh/michalc/python-http-signature-server.svg?style=shield)](https://circleci.com/gh/michalc/python-http-signature-server) [![Test Coverage](https://api.codeclimate.com/v1/badges/13edfb23364413ec24c3/test_coverage)](https://codeclimate.com/github/michalc/python-http-signature-server/test_coverage)
 
 HTTP server agnostic Python implementation of the server side of the [IETF draft "Signing HTTP Messages"](https://tools.ietf.org/html/draft-ietf-httpbis-message-signatures-00), with no dependencies other than the Python standard library, although [cryptography](https://github.com/pyca/cryptography) would typically be used in client code to verify signatures using a public key.
 
