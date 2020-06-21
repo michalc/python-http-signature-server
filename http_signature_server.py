@@ -1,3 +1,4 @@
+from base64 import b64decode
 from collections import defaultdict
 from datetime import datetime
 import re
@@ -12,14 +13,14 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
     try:
         sig_header = next(value for key, value in headers if key.lower() == 'signature').strip()
     except StopIteration:
-        return 'Missing signature header', None
+        return 'Missing signature header', (None, None)
 
     #############################
     # Ensure is of correct format
 
     is_sig = re.match(r'^(([a-zA-Z]+=(("[^"]*")|\d+))(, (?=[a-zA-Z])|$))*$', sig_header)
     if not is_sig:
-        return 'Invalid signature header', None
+        return 'Invalid signature header', (None, None)
 
     #################################
     # Ensure have required parameters
@@ -27,30 +28,33 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
     param_key_values = re.findall(r'([a-zA-Z]+)=(?:(?:"([^"]*)")|(\d+))', sig_header)
     params = dict(((key, (v_str or v_num)) for key, v_str, v_num in param_key_values))
     if len(param_key_values) != len(params):
-        return 'Repeated parameter', None
+        return 'Repeated parameter', (None, None)
 
     try:
         key_id_param = params['keyId']
     except KeyError:
-        return f'Missing keyId parameter', None
+        return f'Missing keyId parameter', (None, None)
 
     try:
         headers_param = params['headers']
     except KeyError:
-        return f'Missing headers parameter', None
+        return f'Missing headers parameter', (None, None)
 
     try:
-        created_param = int(params['created'])
+        created_param = params['created']
     except KeyError:
-        return f'Missing created parameter', None
+        return f'Missing created parameter', (None, None)
+
+    try:
+        created = int(created_param)
     except ValueError:
-        return 'Invalid created paramater', None
+        return 'Invalid created paramater', (None, None)
 
     ################################
     # Ensure time skew not too large
 
-    if abs(now - created_param) > max_skew:
-        return 'Created skew too large', None
+    if abs(now - created) > max_skew:
+        return 'Created skew too large', (None, None)
 
     ########################################
     # Ensure required claimed-signed headers
@@ -59,13 +63,13 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
     claimed_signed_headers_set = set(claimed_signed_headers)
 
     if len(claimed_signed_headers) != len(claimed_signed_headers_set):
-        return 'Repeated signed header', None
+        return 'Repeated signed header', (None, None)
 
     if '(created)' not in claimed_signed_headers_set:
-        return 'Unsigned (created) pseudo-header', None
+        return 'Unsigned (created) pseudo-header', (None, None)
 
     if '(request-target)' not in claimed_signed_headers_set:
-        return 'Unsigned (request-target) pseudo-header', None
+        return 'Unsigned (request-target) pseudo-header', (None, None)
 
     ###################################################
     # Ensure have values for all claimed-signed headers
@@ -80,14 +84,14 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
     available_headers_dict = dict(available_headers)
     for header in claimed_signed_headers:
         if header not in available_headers_dict:
-            return f'Missing signed {header} header value', None
+            return f'Missing signed {header} header value', (None, None)
 
     ########################################
     # Ensure verifier corresponding to keyId
 
     matching_verifier = lookup_verifier(key_id_param)
     if not matching_verifier:
-        return 'Unknown keyId', None
+        return 'Unknown keyId', (None, None)
 
     ##################
     # Verify signature
@@ -98,12 +102,12 @@ def verify_headers(lookup_verifier, max_skew, method, path, headers):
             headers_lists[key].append(value)
         return tuple((key, ', '.join(headers_lists[key])) for key in claimed_signed_headers)
 
-    verified = matching_verifier('\n'.join(
+    verified = matching_verifier(b64decode(params['signature']), '\n'.join(
         f'{key}: {value}' for key, value in signature_input()
     ).encode('ascii'))
 
     if not verified:
-        return 'Signature does not verify', None
+        return 'Signature does not verify', (None, None)
 
     ##############################################
     # Generate key value pairs of verified headers
