@@ -167,6 +167,22 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(error, 'Repeated parameter')
         self.assertEqual(creds, (None, None))
 
+    def test_missing_required_signed_headers(self):
+        now = str(int(datetime.now().timestamp()))
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="inc", created={now}, signature="Y29y", headers="(created)"',
+        ),))
+        self.assertEqual(error, 'Unsigned (request-target) pseudo-header')
+        self.assertEqual(creds, (None, None))
+
+        error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
+            'signature',
+            f'keyId="inc", created={now}, signature="Y29y", headers="(request-target)"',
+        ),))
+        self.assertEqual(error, 'Unsigned (created) pseudo-header')
+        self.assertEqual(creds, (None, None))
+
     def test_invalid_created(self):
         error, creds = verify_headers(always_true_lookup_verifier, 10, 'GET', '/any', ((
             'signature',
