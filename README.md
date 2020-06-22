@@ -44,7 +44,7 @@ def lookup_verifier(key_id):
     # Could use the supplied key_id to lookup different public keys
     return verify
 
-# method, path, and headers would be takne from the incoming HTTP request
+# method, path, and headers would be taken from the incoming HTTP request
 error, (key_id, verified_headers) = verify_headers(lookup_verifier, 10, method, path, headers)
 ```
 
