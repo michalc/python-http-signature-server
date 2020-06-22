@@ -2,11 +2,11 @@ from base64 import b64decode
 from collections import defaultdict
 from datetime import datetime
 import re
-from typing import Callable, DefaultDict, List, Tuple, Union, Optional
+from typing import Callable, DefaultDict, List, Tuple, Union
 
 
 def verify_headers(
-        lookup_verifier: Callable[[str], Optional[Callable[[bytes, bytes], bool]]],
+        verify: Callable[[str, bytes, bytes], Union[None, bool]],
         max_skew: int, method: str, path: str,
         headers: Tuple[Tuple[str, str], ...]
     ) \
@@ -99,13 +99,6 @@ def verify_headers(
         if header not in available_headers_dict:
             return f'Missing signed {header} header value', (None, None)
 
-    ########################################
-    # Ensure verifier corresponding to keyId
-
-    matching_verifier = lookup_verifier(key_id_param)
-    if matching_verifier is None:
-        return 'Unknown keyId', (None, None)
-
     ##################
     # Verify signature
 
@@ -115,9 +108,13 @@ def verify_headers(
             headers_lists[key].append(value)
         return tuple((key, ', '.join(headers_lists[key])) for key in claimed_signed_headers)
 
-    verified = matching_verifier(b64decode(signature_param), '\n'.join(
-        f'{key}: {value}' for key, value in signature_input()
-    ).encode('ascii'))
+    verified = verify(
+        key_id_param, b64decode(signature_param), '\n'.join(
+            f'{key}: {value}' for key, value in signature_input()
+        ).encode('ascii'))
+
+    if verified is None:
+        return 'Unknown keyId', (None, None)
 
     if not verified:
         return 'Signature does not verify', (None, None)
