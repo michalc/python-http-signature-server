@@ -15,12 +15,12 @@ pip install http-signature-server
 ```python
 from http_signature_server import verify
 
-def lookup_verifier(key_id):
-    # If the key_id is found, return a callable that takes the signature and
-    # data to verify, returning True only if the signature verifies the data
-    # If the key_id isn't found, return None
+def verify(key_id, signature, signature_input):
+    # If the key_id is not found, return None
+    # If the key_id is found and the signature verifies the input, return True
+    # If the key_is is found and the signature does not verify the input, return False
 
-error, (key_id, verified_headers) = verify_headers(lookup_verifier, max_skew, method, path, headers)
+error, (key_id, verified_headers) = verify_headers(verify, max_skew, method, path, headers)
 
 if error is not None:
     # Return error or raise exception as needed
@@ -40,19 +40,16 @@ public_key = \
     b'-----END PUBLIC KEY-----\n'
 public_key = load_pem_public_key(public_key, backend=default_backend())
 
-def verify(sig, d):
+def verify(key_id, signature, signature_input):
+    # Could use the supplied key_id to lookup the public key
     try:
-        public_key.verify(sig, d)
+        public_key.verify(signature, signature_input)
     except InvalidSignature:
         return False
     return True
 
-def lookup_verifier(key_id):
-    # Could use the supplied key_id to lookup different public keys
-    return verify
-
 # method, path, and headers would be taken from the incoming HTTP request
-error, (key_id, verified_headers) = verify_headers(lookup_verifier, 10, method, path, headers)
+error, (key_id, verified_headers) = verify_headers(verify, 10, method, path, headers)
 ```
 
 
