@@ -20,6 +20,47 @@ if error is not None:
 ```
 
 
+## Recipe: Verify using Ed25519 public key
+
+```python
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+public_key = \
+    b'-----BEGIN PUBLIC KEY-----\n' \
+    b'MCowBQYDK2VwAyEAe9+zIz+CH9E++J0qiE6aS657qzxsNWIEf2BZcUAQF94=\n' \
+    b'-----END PUBLIC KEY-----\n'
+public_key = load_pem_public_key(public_key, backend=default_backend())
+
+def verify(sig, d):
+    try:
+        public_key.verify(sig, d)
+    except InvalidSignature:
+        return False
+    return True
+
+def lookup_verifier(key_id):
+    # Could use the supplied key_id to lookup different public keys
+    return verify
+
+# method, path, and headers would be takne from the incoming HTTP request
+error, (key_id, verified_headers) = verify_headers(lookup_verifier, 10, method, path, headers)
+```
+
+
+## Recipe: Create an Ed25519 public/private key pair
+
+```python
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption, PrivateFormat, PublicFormat
+
+private_key = Ed25519PrivateKey.generate()
+print(private_key.private_bytes(encoding=Encoding.PEM, format=PrivateFormat.PKCS8, encryption_algorithm=NoEncryption()))
+print(private_key.public_key().public_bytes(encoding=Encoding.PEM, format=PublicFormat.SubjectPublicKeyInfo))
+```
+
+
 # What's implemented
 
 A deliberate subset of the signature algorithm is implemented/enforced:
