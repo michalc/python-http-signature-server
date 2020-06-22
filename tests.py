@@ -1,6 +1,11 @@
 from datetime import datetime
 import unittest
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+from http_signature_client import sign_headers
 from http_signature_server import verify_headers
 
 
@@ -240,6 +245,56 @@ class TestIntegration(unittest.TestCase):
         ))
         self.assertEqual(error, None)
         self.assertEqual(creds, ('cor', (('H1', 'value1'), ('h3', 'value3'))))
+
+    def test_client(self):
+        key_id = 'my-key'
+        pem_private_key = \
+            b'-----BEGIN PRIVATE KEY-----\n' \
+            b'MC4CAQAwBQYDK2VwBCIEINQG5lNt1bE8TZa68mV/WZdpqsXaOXBHvgPQGm5CcjHp\n' \
+            b'-----END PRIVATE KEY-----\n'
+
+        private_key = load_pem_private_key(
+            pem_private_key, password=None, backend=default_backend())
+
+        method = 'post'
+        path = '/some-path?a=b&a=c&d=e'
+        headers = (
+            ('connection', 'close'),
+            ('x-custom', 'first  '),
+            ('x-custom', '  second'),
+            ('(request-target)', 'some-value'),
+            ('(created)', 'some-other-value'),
+        )
+        signed_headers = sign_headers(key_id, private_key.sign, method, path, headers)
+
+        public_key = private_key.public_key()
+
+        def verify(sig, d):
+            try:
+                public_key.verify(sig, d)
+            except InvalidSignature:
+                return False
+            return True
+
+        def lookup_verifier(_):
+            return verify
+
+        error, (key_id, verified_headers) = verify_headers(
+            lookup_verifier, 10, method, path, signed_headers)
+        self.assertEqual(error, None)
+        self.assertEqual(key_id, 'my-key')
+        self.assertEqual(verified_headers, (
+            ('x-custom', 'first  '),
+            ('x-custom', '  second'),
+            ('(request-target)', 'some-value'),
+            ('(created)', 'some-other-value'),
+        ))
+
+        error, _ = verify_headers(lookup_verifier, 10, 'not', path, signed_headers)
+        self.assertEqual(error, 'Signature does not verify')
+
+        error, _ = verify_headers(lookup_verifier, 10, method, '/not', signed_headers)
+        self.assertEqual(error, 'Signature does not verify')
 
 
 def always_true_lookup_verifier(_):

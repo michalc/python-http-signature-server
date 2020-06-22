@@ -41,6 +41,9 @@ jobs:
       - run:
           name: Run tests
           command: |
+            pip install \
+              cryptography==2.9.2 \
+              http-signature-client==0.0.21
             ./cc-test-reporter before-build
             coverage run -m unittest -vb
             coverage xml -i
@@ -53,6 +56,9 @@ jobs:
       - run:
           name: Run tests
           command: |
+            pip install \
+              cryptography==2.9.2 \
+              http-signature-client==0.0.21
             python -m unittest -vb
   test-3.8.1:
     <<: *template
