@@ -3,7 +3,7 @@ import unittest
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_pem_private_key
 
 from http_signature_client import sign_headers
 from http_signature_server import verify_headers
@@ -267,7 +267,11 @@ class TestIntegration(unittest.TestCase):
         )
         signed_headers = sign_headers(key_id, private_key.sign, method, path, headers)
 
-        public_key = private_key.public_key()
+        public_key = \
+            b'-----BEGIN PUBLIC KEY-----\n' \
+            b'MCowBQYDK2VwAyEAe9+zIz+CH9E++J0qiE6aS657qzxsNWIEf2BZcUAQF94=\n' \
+            b'-----END PUBLIC KEY-----\n'
+        public_key = load_pem_public_key(public_key, backend=default_backend())
 
         def verify(sig, d):
             try:
