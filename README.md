@@ -67,6 +67,32 @@ print(private_key.public_key().public_bytes(encoding=Encoding.PEM, format=Public
 ```
 
 
+## API
+
+### Parameters
+
+- `verify` - A callable taking a `str` `key_id` and `bytes` `signature` and `signature_input`. It must return `True` if `key_id` is known and `signature`/`signature_input` is verified, for example by a corresponding public key; return `False` if `key_id` is known but the `signature`/`signature_input` is _not_ verified; return `None` otherwise.
+
+- `max_skew` - A maximum integer number of seconds difference from the time an incoming signature claimed to be constructed, and the current time.
+
+- `method` - The HTTP method of the request, such as `GET` or `POST`.
+
+- `path` - The full path of the request, including any query string.
+
+- `headers` - A tuple of (key, value) pairs of HTTP headers to attempt to verify.
+
+
+### Returns
+
+A tuple `error, (key_id, verified_headers)`.
+
+- `error` - If the request is verified, `None`. Otherwise a `str` containing a short reason in English as to why verification failed.
+
+- `key_id` - If the request is verified, the `keyId` from the incoming request. Otherwise, `None`.
+
+- `verified_headers` - If the request is verified, the (key, value) HTTP header pairs that were verified by the signature; this will be a sub-tuple of the `headers` parameter. Otherwise, `None`.
+
+
 # What's implemented
 
 A deliberate subset of the signature algorithm is implemented/enforced:
